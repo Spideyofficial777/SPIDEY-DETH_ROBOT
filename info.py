@@ -39,7 +39,7 @@ SUPPORT_GROUP = int(environ.get('SUPPORT_GROUP', '-1001974657184'))
 request_channel = environ.get('REQUEST_CHANNEL', '-1002286564383') # If anyone sends a request message to your bot, you will get it in this channel.
 MOVIE_UPDATE_CHANNEL = int(environ.get('MOVIE_UPDATE_CHANNEL', '-1001813495612')) # 
 SUPPORT_CHAT = environ.get('SUPPORT_CHAT', 'https://t.me/death_movies') #Support group link ( make sure bot is admin )
-MULTI_FSUB = [int(channel_id) for channel_id in environ.get('MULTI_FSUB', '-1001959922658 -1002252585703 -1002470391435').split() if re.match(r'^-?\d+$', channel_id)]
+MULTI_FSUB = [int(channel_id) for channel_id in environ.get('MULTI_FSUB', '-1001959922658 -1002470391435').split() if re.match(r'^-?\d+$', channel_id)]
 #---------------------------------------------------------------
 #---------------------------------------------------------------
 IS_VERIFY = is_enabled('IS_VERIFY', False)
