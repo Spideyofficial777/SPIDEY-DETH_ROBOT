@@ -7,26 +7,66 @@ from pymongo.errors import DuplicateKeyError
 from umongo import Instance, Document, fields
 from motor.motor_asyncio import AsyncIOMotorClient
 from marshmallow.exceptions import ValidationError
-from info import DATABASE_URI, DATABASE_NAME, COLLECTION_NAME, MAX_BTN
+from info import * # DATABASE_URI, DATABASE_NAME, COLLECTION_NAME, MAX_BTN
+
+# First Database For File Saving 
+client = MongoClient(FILE_DB_URI)
+db = client[DATABASE_NAME]
+col = db[COLLECTION_NAME]
+
+# Second Database For File Saving
+sec_client = MongoClient(SEC_FILE_DB_URI)
+sec_db = sec_client[DATABASE_NAME]
+sec_col = sec_db[COLLECTION_NAME]
 
 client = AsyncIOMotorClient(DATABASE_URI)
 mydb = client[DATABASE_NAME]
 instance = Instance.from_db(mydb)
 
-@instance.register
-class Media(Document):
-    file_id = fields.StrField(attribute='_id')
-    file_ref = fields.StrField(allow_none=True)
-    file_name = fields.StrField(required=True)
-    file_size = fields.IntField(required=True)
-    mime_type = fields.StrField(allow_none=True)
-    caption = fields.StrField(allow_none=True)
-    file_type = fields.StrField(allow_none=True)
+async def save_file(media):
+    """Save file in the database with duplicate protection and dual DB support."""
 
-    class Meta:
-        indexes = ('$file_name', )
-        collection_name = COLLECTION_NAME
+    file_id, file_ref = unpack_new_file_id(media.file_id)
+    file_name = clean_file_name(media.file_name)
 
+    file = {
+        'file_id': file_id,
+        'file_ref': file_ref,
+        'file_name': file_name,
+        'file_size': media.file_size,
+        'caption': media.caption.html if media.caption else None,
+        'mime_type': getattr(media, 'mime_type', None),
+        'file_type': getattr(media, 'mime_type', None).split("/")[0] if media.mime_type else None
+    }
+
+    # First check if already exists in primary DB
+    if col.find_one({'file_id': file_id, 'file_name': file_name}):
+        print(f"{file_name} already exists in primary DB.")
+        return False, 0
+
+    try:
+        col.insert_one(file)
+        print(f"{file_name} successfully saved in primary DB.")
+        return True, 1
+    except Exception as e:
+        print(f"Primary DB insert failed: {e}")
+        if MULTIPLE_DATABASE:
+            # Check if already exists in secondary DB
+            if sec_col.find_one({'file_id': file_id, 'file_name': file_name}):
+                print(f"{file_name} already exists in secondary DB.")
+                return False, 0
+            try:
+                sec_col.insert_one(file)
+                print(f"{file_name} successfully saved in secondary DB.")
+                return True, 1
+            except Exception as e2:
+                print(f"Secondary DB insert failed: {e2}")
+                return False, 0
+        else:
+            print("Primary DB full. Enable MULTIPLE_DATABASE to use secondary DB.")
+            return False, 0
+
+            
 async def get_files_db_size():
     return (await mydb.command("dbstats"))['dataSize']
     

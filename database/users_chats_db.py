@@ -423,5 +423,5 @@ class Database:
     async def reset_group_settings(self, id):
         await self.grp.update_one({'id': int(id)}, {'$set': {'settings': self.default}})
 
-db = Database()
+db = Database(USER_DB_URI, DATABASE_NAME)
 
