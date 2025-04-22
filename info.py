@@ -119,6 +119,18 @@ else:
     ON_HEROKU = False
 URL = environ.get("FQDN", "https://glorious-martynne-hackerxofficial-a41df8e9.koyeb.app/")
 
+if MULTIPLE_DATABASE == False:
+    USER_DB_URI = DATABASE_URI
+    OTHER_DB_URI = DATABASE_URI
+    FILE_DB_URI = DATABASE_URI
+    SEC_FILE_DB_URI = DATABASE_URI
+else:
+    USER_DB_URI = DATABASE_URI    # This Db is for User Data Store
+    OTHER_DB_URI = O_DB_URI       # This Db Is For Other Data Store
+    FILE_DB_URI = F_DB_URI        # This Db Is For File Data Store
+    SEC_FILE_DB_URI = S_DB_URI    # This Db is for File Data Store When First Db Is Going To Be Full.
+    
+    
 #---------------------------------------------------------------
 #---------------------------------------------------------------
 SETTINGS = {
