@@ -8,6 +8,8 @@ from umongo import Instance, Document, fields
 from motor.motor_asyncio import AsyncIOMotorClient
 from marshmallow.exceptions import ValidationError
 from info import * # DATABASE_URI, DATABASE_NAME, COLLECTION_NAME, MAX_BTN
+from pymongo import MongoClient
+
 
 # First Database For File Saving 
 client = MongoClient(FILE_DB_URI)
