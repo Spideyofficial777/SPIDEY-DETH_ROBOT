@@ -7,20 +7,22 @@ client = AsyncIOMotorClient(DATABASE_URI)
 mydb = client[DATABASE_NAME]
 fsubs = client['fsubs']
 class Database:
-    default = SETTINGS.copy()
-    def __init__(self):
-        self.col = mydb.users
-        self.grp = mydb.groups
-        self.misc = mydb.misc
-        self.verify_id = mydb.verify_id
-        self.users = mydb.uersz
-        self.req = mydb.requests
-        self.mGrp = mydb.mGrp
-        self.pmMode = mydb.pmMode
-        self.Spidey_ads_link = mydb.Spidey_ads_link
-        self.grp_and_ids = fsubs.grp_and_ids
-        self.movies_update_channel = mydb.movies_update_channel
-        self.botcol = mydb.botcol
+    default = SETTINGS.copy()
+
+    def __init__(self, uri, database_name):
+        # use uri and db_name if you need to connect here
+        self.col = mydb.users
+        self.grp = mydb.groups
+        self.misc = mydb.misc
+        self.verify_id = mydb.verify_id
+        self.users = mydb.uersz
+        self.req = mydb.requests
+        self.mGrp = mydb.mGrp
+        self.pmMode = mydb.pmMode
+        self.Spidey_ads_link = mydb.Spidey_ads_link
+        self.grp_and_ids = fsubs.grp_and_ids
+        self.movies_update_channel = mydb.movies_update_channel
+        self.botcol = mydb.botcol
     def new_user(self, id, name):
         return dict(
             id = id,
