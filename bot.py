@@ -21,7 +21,7 @@ logging.getLogger("aiohttp.web").setLevel(logging.ERROR)
 
 from pyrogram import Client, __version__
 from pyrogram.raw.all import layer
-from database.ia_filterdb import Media
+#from database.ia_filterdb import Media
 from database.users_chats_db import db
 from info import *
 from utils import temp
@@ -44,7 +44,7 @@ files = glob.glob(ppath)
 DethBot.start()
 loop = asyncio.get_event_loop()
 
-pyrogram.utils.MIN_CHANNEL_ID = -1009147483647
+pyrogram.utils.MIN_CHANNEL_ID = -1002423451263
 
 async def Deth_start():
     print('\n')
