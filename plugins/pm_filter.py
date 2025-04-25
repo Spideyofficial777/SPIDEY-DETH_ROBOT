@@ -10,7 +10,7 @@ from pyrogram import Client, filters, enums
 from pyrogram.errors import * #FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid, ChatAdminRequired
 from utils import temp, get_settings, is_check_admin, get_status, get_size, save_group_settings, is_req_subscribed, get_poster, get_status, get_readable_time , imdb , formate_file_name
 from database.users_chats_db import db
-from database.ia_filterdb import Media, get_search_results, get_bad_files, get_file_details
+from database.ia_filterdb import get_search_results, get_bad_files, get_file_details
 import random
 lock = asyncio.Lock()
 import traceback

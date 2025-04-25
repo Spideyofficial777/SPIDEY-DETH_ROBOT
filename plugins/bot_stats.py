@@ -85,19 +85,32 @@ async def groups_list(bot, message):
             outfile.write(out)
         await message.reply_document('chats.txt', caption="<b>List of all groups</b>")
 
-@Client.on_message(filters.command('stats') & filters.user(ADMINS) & filters.incoming)
+@Client.on_message(filters.command('stats') & filters.incoming)
 async def get_ststs(bot, message):
-    users = await db.total_users_count()
-    groups = await db.total_chat_count()
-    size = get_size(await db.get_db_size())
-    free = get_size(536870912)
-    files = await Media.count_documents()
-    db2_size = get_size(await get_files_db_size())
-    db2_free = get_size(536870912)
-    uptime = time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - time.time()))
-    ram = psutil.virtual_memory().percent
-    cpu = psutil.cpu_percent()
-    await message.reply_text(script.STATUS_TXT.format(users, groups, size, free, files, db2_size, db2_free, uptime, ram, cpu))
+    rju = await message.reply('Fetching stats..')
+    try:
+        total_users = await db.total_users_count()
+        totl_chats = await db.total_chat_count()
+        filesp = col.count_documents({})
+        stats = vjdb.command('dbStats')
+        used_dbSize = (stats['dataSize']/(1024*1024))+(stats['indexSize']/(1024*1024))
+        free_dbSize = 512-used_dbSize
+        
+        if MULTIPLE_DATABASE == False:
+            await rju.edit(script.SEC_STATUS_TXT.format(total_users, totl_chats, filesp, round(used_dbSize, 2), round(free_dbSize, 2)))
+            return 
+            
+        totalsec = sec_col.count_documents({})   
+        stats2 = sec_db.command('dbStats')
+        used_dbSize2 = (stats2['dataSize']/(1024*1024))+(stats2['indexSize']/(1024*1024))
+        free_dbSize2 = 512-used_dbSize2
+        stats3 = mydb.command('dbStats')
+        used_dbSize3 = (stats3['dataSize']/(1024*1024))+(stats3['indexSize']/(1024*1024))
+        free_dbSize3 = 512-used_dbSize3
+        await rju.edit(script.STATUS_TXT.format((int(filesp)+int(totalsec)), total_users, totl_chats, filesp, round(used_dbSize, 2), round(free_dbSize, 2), totalsec, round(used_dbSize2, 2), round(free_dbSize2, 2), round(used_dbSize3, 2), round(free_dbSize3, 2)))
+    except Exception as e:
+        await rju.edit(f"Error - {e}")
+
 
 @Client.on_message(filters.command('users') & filters.user(ADMINS))
 async def list_users(bot, message):
