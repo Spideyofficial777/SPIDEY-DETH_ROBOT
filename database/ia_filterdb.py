@@ -102,7 +102,31 @@ async def save_file(media):
             print(f'{getattr(media, "file_name", "NO_FILE")} is saved to database')
             return 'suc'
 
-async def get_search_results(query, max_results=MAX_BTN, offset=0, lang=None):
+def clean_file_name(file_name):
+    """Clean and format the file name."""
+    file_name = re.sub(r"(_|\-|\.|\+)", " ", str(file_name)) 
+    unwanted_chars = ['[', ']', '(', ')', '{', '}']
+    
+    for char in unwanted_chars:
+        file_name = file_name.replace(char, '')
+        
+    return ' '.join(filter(lambda x: not x.startswith('@') and not x.startswith('http') and not x.startswith('www.') and not x.startswith('t.me'), file_name.split()))
+
+def is_file_already_saved(file_id, file_name):
+    """Check if the file is already saved in either collection."""
+    found1 = {'file_name': file_name}
+    found = {'file_id': file_id}
+
+    for collection in [col, sec_col]:
+        if collection.find_one(found1) or collection.find_one(found):
+            print(f"{file_name} is already saved.")
+            return True
+            
+    return False
+
+async def get_search_results(chat_id, query, file_type=None, max_results=10, offset=0, filter=False):
+    """For given query return (results, next_offset)"""
+    
     query = query.strip()
     if not query:
         raw_pattern = '.'
@@ -115,22 +139,24 @@ async def get_search_results(query, max_results=MAX_BTN, offset=0, lang=None):
     except:
         regex = query
     filter = {'file_name': regex}
-    cursor = Media.find(filter)
-    cursor.sort('$natural', -1)
-    if lang:
-        lang_files = [file async for file in cursor if lang in file.file_name.lower()]
-        files = lang_files[offset:][:max_results]
-        total_results = len(lang_files)
-        next_offset = offset + max_results
-        if next_offset >= total_results:
-            next_offset = ''
-        return files, next_offset, total_results
-    cursor.skip(offset).limit(max_results)
-    files = await cursor.to_list(length=max_results)
-    total_results = await Media.count_documents(filter)
-    next_offset = offset + max_results
-    if next_offset >= total_results:
-        next_offset = ''       
+    files = []
+    if MULTIPLE_DATABASE:
+        cursor1 = col.find(filter).sort('$natural', -1).skip(offset).limit(max_results)
+        cursor2 = sec_col.find(filter).sort('$natural', -1).skip(offset).limit(max_results)
+        
+        for file in cursor1:
+            files.append(file)
+        for file in cursor2:
+            files.append(file)
+    else:
+        cursor = col.find(filter).sort('$natural', -1).skip(offset).limit(max_results)
+        
+        for file in cursor:
+            files.append(file)
+
+    total_results = col.count_documents(filter) if not MULTIPLE_DATABASE else (col.count_documents(filter) + sec_col.count_documents(filter))
+    next_offset = "" if (offset + max_results) >= total_results else (offset + max_results)
+
     return files, next_offset, total_results
     
 async def get_bad_files(query, file_type=None, offset=0, filter=False):
